@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personajes HP y Rick & Morty</title>
+    <style>
+        :root {
+    --bg-dark: #0b0a0a;              
+    --card-bg: #2a1a1a;              
+    --highlight: #d4af37;            
+    --contrast: #7f1f1f;         
+    --text: #f5f0e6;                 
+}
+
+body {
+    background: linear-gradient(to right, #0b0a0a, #1f1212);
+    font-family: 'Georgia', serif;
+    color: var(--text);
+    margin: 0;
+}
+
+header {
+    background: var(--card-bg);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid var(--highlight);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(212, 175, 55, 0.7);
+}
+
+form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.search {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 2px solid var(--highlight);
+    background-color: #3e2c2c;     
+    color: var(--text);
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    width: 60%;
+    max-width: 500px;
+}
+
+.search::placeholder {
+    color: #bfae6e;
+}
+
+.search:focus {
+    outline: none;
+    background-color: #4a3939;
+    border-color: var(--contrast);
+    color: var(--text);
+}
+
+main {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 30px;
+}
+
+.user {
+    background: linear-gradient(135deg, #3e2c2c, #2a1a1a);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.7);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1.5px solid var(--highlight);
+}
+
+.user:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(127, 31, 31, 0.9);
+    border-color: var(--contrast);
+}
+
+.user img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-bottom: 4px solid var(--highlight);
+}
+
+.user-info {
+    padding: 20px 15px;
+    text-align: left;
+    background-color: #2f1f1f;
+}
+
+.user-info h1 {
+    color: var(--highlight);
+    margin: 0 0 6px 0;
+    font-weight: 700;
+    font-size: 1.25rem;
+    font-family: 'Goudy Old Style', serif;
+}
+
+.user-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    color: var(--contrast);
+    font-weight: 600;
+}
+
+.user-info span {
+    font-size: 1rem;
+    color: #c9b873;
+}
+
+.descripcion {
+    background-color: #3e2c2c;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    color: #d8c98a;
+    text-align: left;
+    border-top: 1px solid var(--highlight);
+}
+
+    </style>
+</head>
+<body>
+    <header>
+        <form id="form">
+            <input type="text" id="search" class="search" placeholder="Buscar Personaje" />
+        </form>
+    </header>
+    <main id="main"></main>
+
+    <script>
+        const API_URL_HP = 'https://hp-api.onrender.com/api/characters';
+        const API_URL_RM = 'https://rickandmortyapi.com/api/character';
+
+        const main = document.getElementById('main');
+        const form = document.getElementById('form');
+        const search = document.getElementById('search');
+
+        getCharacters();
+
+        async function getCharacters(searchTerm = '') {
+            main.innerHTML = '';
+
+            try {
+                const resHP = await fetch(API_URL_HP);
+                const dataHP = await resHP.json();
+                const filteredHP = searchTerm
+                    ? dataHP.filter(c => c.name.toLowerCase().includes(searchTerm))
+                    : dataHP;
+                showHPCharacters(filteredHP);
+            } catch (err) {
+                console.error('Error al cargar personajes de HP:', err);
+            }
+
+            try {
+                const resRM = await fetch(`${API_URL_RM}?name=${searchTerm}`);
+                const dataRM = await resRM.json();
+                showRMCharacters(dataRM.results || []);
+            } catch (err) {
+                console.error('Error al cargar personajes de Rick & Morty:', err);
+            }
+        }
+
+        function showHPCharacters(characters) {
+            characters.forEach(({ name, image, house, species }, index) => {
+                const charElement = document.createElement('div');
+                charElement.classList.add('user');
+                charElement.innerHTML = `
+                    <img src="${image}" alt="${name}">
+                    <div class="user-info">
+                        <h1>HP-${index + 1}</h1>
+                        <h3>${name}</h3>
+                        <span>${house || 'Sin casa'}</span>
+                    </div>
+                    <div class="descripcion">
+                        <p><strong>Casa:</strong> ${house || 'Desconocida'}<br><strong>Especie:</strong> ${species || 'Desconocida'}</p>
+                    </div>
+                `;
+                main.appendChild(charElement);
+            });
+        }
+
+        function showRMCharacters(characters) {
+            characters.forEach(({ id, name, image, species, status, origin }) => {
+                const charElement = document.createElement('div');
+                charElement.classList.add('user');
+                charElement.innerHTML = `
+                    <img src="${image}" alt="${name}">
+                    <div class="user-info">
+                        <h1>RM-${id}</h1>
+                        <h3>${name}</h3>
+                        <span>${species}</span>
+                    </div>
+                    <div class="descripcion">
+                        <p><strong>Estado:</strong> ${status} <br> <strong>Origen:</strong> ${origin?.name || 'Desconocido'}</p>
+                    </div>
+                `;
+                main.appendChild(charElement);
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const searchTerm = search.value.trim().toLowerCase();
+            getCharacters(searchTerm);
+            search.value = '';
+        });
+    </script>
+</body>
+</html>
